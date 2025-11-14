@@ -1,0 +1,23 @@
+{
+  "name": "hello_webstuff",
+  "version": "1.0.0",
+  "description": "Exploring how I can use AI to push into a new area of coding focused on accessing content from browsers. I wan to look at the whole pipeline from storage, service, to I don't know but visualizations and computations end up getting accessed from my local browsers.",
+  "main": "src/server/app.js",
+  "scripts": {
+    "start": "node src/server/app.js",
+    "dev": "node src/server/app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.13.2",
+    "body-parser": "^2.2.0",
+    "chart.js": "^4.5.1",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "mathjs": "^15.1.0",
+    "uuid": "^13.0.0"
+  }
+}

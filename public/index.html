@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDE Dashboard - Local Service</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>🧮 PDE Dashboard</h1>
+            <p class="subtitle">Partial Differential Equations Solver & Visualizer</p>
+        </header>
+
+        <!-- Service Status Panel -->
+        <section class="panel" id="service-status">
+            <h2>📊 Service Status</h2>
+            <div class="status-grid">
+                <div class="status-card" id="storage-status">
+                    <h3>Storage Service</h3>
+                    <div class="status-indicator">
+                        <span class="status-dot"></span>
+                        <span class="status-text">Checking...</span>
+                    </div>
+                    <div class="status-details"></div>
+                </div>
+                <div class="status-card" id="pde-status">
+                    <h3>PDE Solver</h3>
+                    <div class="status-indicator">
+                        <span class="status-dot"></span>
+                        <span class="status-text">Checking...</span>
+                    </div>
+                    <div class="status-details"></div>
+                </div>
+                <div class="status-card" id="llm-status">
+                    <h3>LLM Service</h3>
+                    <div class="status-indicator">
+                        <span class="status-dot"></span>
+                        <span class="status-text">Checking...</span>
+                    </div>
+                    <div class="status-details"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Left Sidebar - PDE Management -->
+            <aside class="sidebar">
+                <h2>📝 PDE Library</h2>
+                <button class="btn btn-primary" onclick="showNewPDEForm()">+ New PDE</button>
+                <div id="pde-list" class="pde-list">
+                    <p class="loading">Loading PDEs...</p>
+                </div>
+            </aside>
+
+            <!-- Center Panel - PDE Editor & LLM Interaction -->
+            <main class="center-panel">
+                <!-- PDE Editor -->
+                <section class="panel">
+                    <h2>✏️ PDE Editor</h2>
+                    <div id="pde-editor">
+                        <div class="form-group">
+                            <label for="pde-name">Name:</label>
+                            <input type="text" id="pde-name" placeholder="e.g., Heat Equation">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="pde-type">Type:</label>
+                            <select id="pde-type">
+                                <option value="parabolic">Parabolic (Heat/Diffusion)</option>
+                                <option value="hyperbolic">Hyperbolic (Wave)</option>
+                                <option value="elliptic">Elliptic (Laplace/Poisson)</option>
+                                <option value="coupled">Coupled System</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="pde-description">Description:</label>
+                            <textarea id="pde-description" rows="3" placeholder="Describe your PDE system..."></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="pde-equation">Equation:</label>
+                            <input type="text" id="pde-equation" placeholder="e.g., ∂u/∂t = α∇²u">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="pde-initial">Initial Condition:</label>
+                            <select id="pde-initial">
+                                <option value="gaussian">Gaussian</option>
+                                <option value="step">Step Function</option>
+                                <option value="custom">Custom</option>
+                            </select>
+                        </div>
+                        
+                        <div class="button-group">
+                            <button class="btn btn-primary" onclick="savePDE()">💾 Save PDE</button>
+                            <button class="btn btn-secondary" onclick="clearEditor()">🗑️ Clear</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- LLM Assistant -->
+                <section class="panel">
+                    <h2>🤖 LLM Assistant</h2>
+                    <div id="llm-chat">
+                        <div id="chat-messages" class="chat-messages">
+                            <div class="chat-message system">
+                                <p>Hello! I can help you formulate and solve PDEs. Try asking:</p>
+                                <ul>
+                                    <li>"Help me set up a heat equation"</li>
+                                    <li>"What boundary conditions should I use?"</li>
+                                    <li>"Suggest a numerical method for wave propagation"</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="chat-input-container">
+                            <textarea id="chat-input" rows="2" placeholder="Ask the LLM for help..."></textarea>
+                            <button class="btn btn-primary" onclick="sendToLLM()">Send</button>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <!-- Right Panel - Visualization -->
+            <aside class="visualization-panel">
+                <h2>📈 Visualization</h2>
+                <div id="solver-controls" class="panel">
+                    <h3>Solver Parameters</h3>
+                    <div class="form-group">
+                        <label>Grid Points (nx):</label>
+                        <input type="number" id="param-nx" value="50" min="10" max="200">
+                    </div>
+                    <div class="form-group">
+                        <label>Grid Points (ny):</label>
+                        <input type="number" id="param-ny" value="50" min="10" max="200">
+                    </div>
+                    <div class="form-group">
+                        <label>Time Steps:</label>
+                        <input type="number" id="param-nt" value="100" min="10" max="1000">
+                    </div>
+                    <button class="btn btn-success" onclick="solvePDE()">▶️ Solve</button>
+                </div>
+
+                <div id="visualization-container">
+                    <canvas id="solution-chart"></canvas>
+                </div>
+
+                <div id="solution-info" class="info-box" style="display: none;">
+                    <h3>Solution Info</h3>
+                    <div id="solution-details"></div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Local PDE Dashboard - Powered by Node.js, Express, and Math.js</p>
+            <p>LLM Integration: Connect your local LLM service for enhanced assistance</p>
+        </footer>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="/js/app.js"></script>
+</body>
+</html>
