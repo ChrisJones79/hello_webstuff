@@ -100,7 +100,7 @@ async function loadPDEList() {
         }
         
         listContainer.innerHTML = pdes.map(pde => `
-            <div class="pde-item" onclick="loadPDE('${pde.id}')">
+            <div class="pde-item" onclick="loadPDE('${pde.id}', this)">
                 <div class="pde-item-name">${pde.name || 'Untitled PDE'}</div>
                 <div class="pde-item-type">${pde.type || 'unknown'}</div>
             </div>
@@ -114,7 +114,7 @@ async function loadPDEList() {
 /**
  * Load a specific PDE into the editor
  */
-async function loadPDE(id) {
+async function loadPDE(id, clickedElement = null) {
     try {
         const response = await fetch(`${API_BASE}/pdes/${id}`);
         const pde = await response.json();
@@ -132,7 +132,14 @@ async function loadPDE(id) {
         document.querySelectorAll('.pde-item').forEach(item => {
             item.classList.remove('active');
         });
-        event.target.closest('.pde-item').classList.add('active');
+        
+        // If we have the clicked element, highlight it
+        if (clickedElement) {
+            const pdeItem = clickedElement.closest('.pde-item');
+            if (pdeItem) {
+                pdeItem.classList.add('active');
+            }
+        }
         
         // Load solutions if available
         await loadSolutions(id);
@@ -256,10 +263,19 @@ async function solvePDE() {
 }
 
 /**
- * Visualize the solution using Chart.js
+ * Visualize the solution using Chart.js or fallback to text display
  */
 function visualizeSolution(solution) {
     const canvas = document.getElementById('solution-chart');
+    
+    // Check if Chart.js is available
+    if (typeof Chart === 'undefined') {
+        // Fallback: Display solution info as text
+        console.warn('Chart.js not available, using text display');
+        displaySolutionAsText(solution);
+        return;
+    }
+    
     const ctx = canvas.getContext('2d');
     
     // Destroy existing chart
@@ -311,6 +327,88 @@ function visualizeSolution(solution) {
             }
         }
     });
+}
+
+/**
+ * Display solution as text when Chart.js is not available
+ */
+function displaySolutionAsText(solution) {
+    const container = document.getElementById('visualization-container');
+    
+    let data = solution.snapshots ? solution.snapshots[solution.snapshots.length - 1].data : solution.solution;
+    const ny = data.length;
+    const nx = data[0].length;
+    const midY = Math.floor(ny / 2);
+    const midX = Math.floor(nx / 2);
+    
+    // Get cross-sections
+    const horizontalSlice = data[midY];
+    const verticalSlice = data.map(row => row[midX]);
+    
+    // Find min/max for scaling
+    const allValues = [...horizontalSlice, ...verticalSlice];
+    const minVal = Math.min(...allValues);
+    const maxVal = Math.max(...allValues);
+    
+    let html = `
+        <div style="padding: 20px; background: white; border-radius: 8px;">
+            <h4>Solution Cross-Sections</h4>
+            <p><strong>Grid Size:</strong> ${nx} × ${ny}</p>
+            <p><strong>Value Range:</strong> ${minVal.toExponential(2)} to ${maxVal.toExponential(2)}</p>
+            
+            <div style="margin-top: 20px;">
+                <h5>Horizontal Cross-section (middle row):</h5>
+                <div style="font-family: monospace; font-size: 10px; overflow-x: auto;">
+                    ${createASCIIPlot(horizontalSlice, 60, 10)}
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <h5>Vertical Cross-section (middle column):</h5>
+                <div style="font-family: monospace; font-size: 10px; overflow-x: auto;">
+                    ${createASCIIPlot(verticalSlice, 60, 10)}
+                </div>
+            </div>
+            
+            <p style="margin-top: 20px; font-style: italic; color: #666;">
+                Note: Install Chart.js or allow CDN access for interactive graphs
+            </p>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+}
+
+/**
+ * Create a simple ASCII-style plot
+ */
+function createASCIIPlot(data, width, height) {
+    const min = Math.min(...data);
+    const max = Math.max(...data);
+    const range = max - min;
+    
+    let plot = '';
+    
+    // Create plot grid
+    for (let y = height - 1; y >= 0; y--) {
+        let line = '';
+        for (let x = 0; x < Math.min(width, data.length); x++) {
+            const value = data[Math.floor(x * data.length / width)];
+            const normalized = range > 0 ? (value - min) / range : 0.5;
+            const yPos = normalized * (height - 1);
+            
+            if (Math.abs(yPos - y) < 0.5) {
+                line += '█';
+            } else if (y === 0) {
+                line += '─';
+            } else {
+                line += ' ';
+            }
+        }
+        plot += line + '\n';
+    }
+    
+    return `<pre>${plot}</pre>`;
 }
 
 /**
