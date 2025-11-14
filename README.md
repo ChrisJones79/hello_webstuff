@@ -204,9 +204,23 @@ Solutions are visualized using Chart.js showing:
 
 ## 🔒 Security
 
+**Important**: This application is designed for **local, single-user development use only**.
+
+### Security Model
 - All data stored locally - no external transmission
 - LLM communication stays within your local network
 - No authentication required (designed for single-user local use)
+- **Not intended for production or multi-user deployment**
+- **No rate limiting** - designed to run on localhost only
+
+### For Production Use
+If you plan to deploy this in a production environment:
+- Add authentication and authorization
+- Implement rate limiting on API endpoints
+- Add input validation and sanitization
+- Use HTTPS/TLS for secure communication
+- Consider using a proper database instead of JSON files
+- Add user session management
 
 ## 🤝 Contributing
 
